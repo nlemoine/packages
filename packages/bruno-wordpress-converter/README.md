@@ -2,26 +2,35 @@
 
 Convert any WordPress REST API to a [Bruno](https://www.usebruno.com/) collection with beautiful interactive CLI or direct command-line usage.
 
+## Compatibility
+
+| Package Version | Bruno Version | Format |
+|-----------------|---------------|--------|
+| 1.x | Bruno 2.x / 3.x | `.bru` (Bru Lang) |
+| **2.x** | **Bruno 3.x** | **`.yml` (OpenCollection)** |
+
+Version 2.x generates the **OpenCollection YAML format** introduced in Bruno 3.
+
 ## Features
 
-- 🔍 Dynamic discovery of all endpoints (core, plugins, custom post types)
-- 📁 Organization by namespace and resource type
-- 🎨 Beautiful interactive CLI with prompts
-- 🔐 Authentication ready (Basic Auth, Application Passwords)
-- ⚡ Optional schema fetching for faster conversions
+- Dynamic discovery of all endpoints (core, plugins, custom post types)
+- Organization by namespace and resource type
+- Beautiful interactive CLI with prompts
+- Authentication ready (Basic Auth, Application Passwords)
+- Optional schema fetching for faster conversions
 
 ## Installation
 
 ### Local Installation
 
 ```bash
-npm install @n5s/bruno-wordpress-converter
+pnpm add @n5s/bruno-wordpress-converter
 ```
 
 ### Global Installation
 
 ```bash
-npm install -g @n5s/bruno-wordpress-converter
+pnpm add -g @n5s/bruno-wordpress-converter
 ```
 
 After global installation, the `wp-to-bruno` command is available anywhere:
@@ -44,7 +53,7 @@ wp-to-bruno
 
 The CLI will prompt you for:
 - WordPress API URL
-- Collection name
+- Collection name (optional, defaults to "{site name} REST API")
 - Output directory
 - Namespace filtering (optional)
 - Schema fetching preference
@@ -64,7 +73,7 @@ wp-to-bruno https://example.com/wp-json/ -o ./my-api -n "My API"
 | Option | Alias | Description |
 |--------|-------|-------------|
 | `--output <dir>` | `-o` | Output directory |
-| `--name <name>` | `-n` | Collection name |
+| `--name <name>` | `-n` | Collection name (defaults to "{site name} REST API") |
 | `--namespaces <list>` | | Comma-separated namespaces (e.g., "wp/v2,wc/v3") |
 | `--no-schemas` | | Skip detailed schema fetching (faster) |
 | `--username <username>` | `-u` | WordPress username for authentication |
@@ -106,23 +115,24 @@ wp-to-bruno https://example.com/wp-json/ \
 
 1. Fetches the API index from `/wp-json/` to discover all routes
 2. Optionally fetches detailed schemas via `OPTIONS` requests
-3. Converts WordPress schema to Bruno format using official Bruno packages
+3. Converts WordPress schema to Bruno OpenCollection YAML format
 4. Organizes endpoints by namespace and resource type
-5. Generates `.bru` files with environment variables and authentication
+5. Generates `.yml` files with environment variables
 
 ## Output Structure
 
 ```
 bruno-collection/
-├── bruno.json
-├── collection.bru              # Auth configuration
+├── opencollection.yml         # Collection configuration
 ├── environments/
-│   └── default.bru            # baseUrl, username, password
+│   └── default.yml            # baseUrl, username, password
 ├── wp-v2/
+│   ├── folder.yml
 │   ├── posts/
-│   │   ├── list-posts.bru
-│   │   ├── create-post.bru
-│   │   ├── get-posts-by-id.bru
+│   │   ├── folder.yml
+│   │   ├── list-posts.yml
+│   │   ├── create-posts.yml
+│   │   ├── get-posts-by-id.yml
 │   │   └── ...
 │   ├── pages/
 │   └── users/
@@ -131,9 +141,8 @@ bruno-collection/
 
 Each endpoint includes:
 - Request details (method, URL, headers)
-- Query/path parameters
-- Request body examples
-- Basic test assertions
+- Query/path parameters with descriptions
+- Request body examples for POST/PUT/PATCH
 
 ## Authentication
 
@@ -151,14 +160,17 @@ wp-to-bruno https://example.com/wp-json/ -u admin -p "xxxx xxxx xxxx xxxx"
 
 ### Using the Generated Collection
 
-After conversion, configure authentication in Bruno's `environments/default.bru`:
+After conversion, configure authentication in `environments/default.yml`:
 
-```
-vars {
-  baseUrl: https://example.com/wp-json
-  username: your-username
-  password: your-application-password
-}
+```yaml
+name: Default
+variables:
+  - name: baseUrl
+    value: https://example.com/wp-json
+  - name: username
+    value: your-username
+  - name: password
+    value: your-application-password
 ```
 
 ### WordPress Application Passwords
@@ -185,16 +197,14 @@ Application Passwords (available since WordPress 5.6) are the recommended way to
 
 **Note:** Application Passwords require HTTPS. For local development with self-signed certificates, use the `--insecure` flag.
 
-The tool also supports Basic Auth, OAuth, and Cookie Authentication configured in Bruno.
-
 ## Troubleshooting
 
 **CORS Errors**: Use a CORS plugin or run on the server
 
 **Authentication Required**: Temporarily disable auth or manually download schema
 
-**SSL Certificate Errors**: Use `NODE_TLS_REJECT_UNAUTHORIZED=0` for local development with self-signed certificates
+**SSL Certificate Errors**: Use `--insecure` flag for local development with self-signed certificates
 
 ## License
 
-MIT - Built with [Bruno](https://www.usebruno.com/) official packages
+MIT
