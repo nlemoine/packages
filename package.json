@@ -1,8 +1,8 @@
 {
   "name": "@n5s/packages",
   "version": "0.0.0",
-  "description": "n5s JS packages monorepo",
   "private": true,
+  "description": "n5s JS packages monorepo",
   "license": "MIT",
   "author": "n5s",
   "type": "module",
@@ -11,13 +11,26 @@
   ],
   "scripts": {
     "build": "nx run-many -t build",
+    "check": "pnpm run lint && pnpm run typecheck && pnpm run test && pnpm run knip && pnpm run publint",
+    "format": "nx run-many -t format",
+    "knip": "knip",
+    "knip:fix": "knip --fix",
+    "lint": "nx run-many -t lint",
+    "lint:fix": "nx run-many -t lint:fix",
+    "normalize": "sort-package-json \"package.json\" \"packages/*/package.json\"",
+    "publint": "pnpm -r --no-bail exec publint",
     "release": "nx release",
+    "release:publish": "nx release publish",
     "release:version": "nx release version",
-    "release:publish": "nx release publish"
+    "test": "nx run-many -t test",
+    "typecheck": "nx run-many -t typecheck"
   },
-  "packageManager": "pnpm@11.2.2",
   "devDependencies": {
     "@nx/js": "22.7.2",
-    "nx": "22.7.2"
-  }
+    "knip": "^6.14.1",
+    "nx": "22.7.2",
+    "publint": "^0.3.21",
+    "sort-package-json": "^3.6.1"
+  },
+  "packageManager": "pnpm@11.2.2"
 }
