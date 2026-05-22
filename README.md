@@ -5,6 +5,7 @@ Monorepo for my published JS packages.
 ## Packages
 
 - [`@n5s/bruno-wordpress-converter`](packages/bruno-wordpress-converter): convert a WordPress REST API into a [Bruno](https://www.usebruno.com/) collection.
+- [`@n5s/octofolio`](packages/octofolio): clean TypeScript interface for GitHub profile data via GraphQL.
 
 ## Development
 
