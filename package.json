@@ -11,7 +11,7 @@
   ],
   "scripts": {
     "build": "nx run-many -t build",
-    "check": "pnpm run lint && pnpm run typecheck && pnpm run test && pnpm run knip && pnpm run publint",
+    "check": "pnpm run lint && pnpm run typecheck && pnpm run test && pnpm run build && pnpm run knip && pnpm run publint",
     "format": "nx run-many -t format",
     "knip": "knip",
     "knip:fix": "knip --fix",

@@ -1,0 +1,67 @@
+{
+  "name": "@n5s/octofolio",
+  "version": "0.1.0",
+  "description": "Clean TypeScript interface for GitHub profile data via GraphQL",
+  "keywords": [
+    "github",
+    "profile",
+    "readme",
+    "graphql",
+    "octokit",
+    "typescript"
+  ],
+  "homepage": "https://github.com/nlemoine/packages/tree/main/packages/octofolio#readme",
+  "bugs": {
+    "url": "https://github.com/nlemoine/packages/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/nlemoine/packages.git",
+    "directory": "packages/octofolio"
+  },
+  "license": "MIT",
+  "author": {
+    "name": "Nicolas Lemoine",
+    "email": "nico@n5s.dev",
+    "url": "https://github.com/nlemoine"
+  },
+  "type": "module",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    }
+  },
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "tsup",
+    "format": "biome format --write",
+    "lint": "biome check",
+    "lint:fix": "biome check --write",
+    "prepublishOnly": "pnpm run build && publint",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@octokit/core": "^7.0.6",
+    "@octokit/graphql": "^9.0.3",
+    "@octokit/plugin-paginate-graphql": "^6.0.0"
+  },
+  "devDependencies": {
+    "@biomejs/biome": "^2.4.15",
+    "@octokit/graphql-schema": "^15.26.1",
+    "msw": "^2.14.6",
+    "tsup": "^8.5.1",
+    "typescript": "^5.8.0",
+    "vitest": "^4.1.7"
+  },
+  "engines": {
+    "node": ">=22"
+  },
+  "publishConfig": {
+    "access": "public"
+  }
+}

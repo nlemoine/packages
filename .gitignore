@@ -1,5 +1,7 @@
 /node_modules
 
 # Nx
-.nx/
-.nx/cache
+/.nx/
+
+# Agent / planning artifacts
+/.claude/
