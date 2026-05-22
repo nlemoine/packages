@@ -65,10 +65,6 @@ jobs:
             pnpm exec nx release --skip-publish
           fi
 
-      - name: Push commits and tags
-        if: ${{ !inputs.dry-run }}
-        run: git push origin HEAD:main --follow-tags
-
       - name: Publish to npm
         env:
           DRY_RUN: ${{ inputs.dry-run }}
