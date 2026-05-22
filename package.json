@@ -1,0 +1,23 @@
+{
+  "name": "@n5s/packages",
+  "version": "0.0.0",
+  "description": "n5s JS packages monorepo",
+  "private": true,
+  "license": "MIT",
+  "author": "n5s",
+  "type": "module",
+  "workspaces": [
+    "packages/*"
+  ],
+  "scripts": {
+    "build": "nx run-many -t build",
+    "release": "nx release",
+    "release:version": "nx release version",
+    "release:publish": "nx release publish"
+  },
+  "packageManager": "pnpm@11.2.2",
+  "devDependencies": {
+    "@nx/js": "22.7.2",
+    "nx": "22.7.2"
+  }
+}
