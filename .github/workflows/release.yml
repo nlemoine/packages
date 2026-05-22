@@ -38,8 +38,12 @@ jobs:
           node-version: 22
           cache: pnpm
 
-      - name: Upgrade npm for trusted publishing
-        run: npm install --global npm@latest
+      - name: Install npm with OIDC trusted-publishing support
+        run: |
+          mkdir -p "$HOME/.npm-latest"
+          npm install --prefix "$HOME/.npm-latest" --no-audit --no-fund --silent npm@latest
+          echo "$HOME/.npm-latest/node_modules/.bin" >> "$GITHUB_PATH"
+          "$HOME/.npm-latest/node_modules/.bin/npm" --version
 
       - run: pnpm install --frozen-lockfile
 
