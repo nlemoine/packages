@@ -1,3 +1,9 @@
+## 2.0.1 (2026-05-22)
+
+### 🐛 Bug Fixes
+
+- **bruno-wordpress-converter:** correct local CLI invocation in README ([596b317](https://github.com/nlemoine/packages/commit/596b317))
+
 # Changelog
 
 ## [2.0.0](https://github.com/nlemoine/bruno-wordpress-converter/compare/v1.0.0...v2.0.0) (2026-01-12)
