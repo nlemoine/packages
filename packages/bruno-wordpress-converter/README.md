@@ -44,8 +44,8 @@ wp-to-bruno https://example.com/wp-json/
 ### Interactive Mode (Recommended)
 
 ```bash
-# Local
-node src/cli.js
+# Local (installed as dependency)
+npx wp-to-bruno
 
 # Global
 wp-to-bruno
@@ -61,8 +61,8 @@ The CLI will prompt you for:
 ### Command Line Mode
 
 ```bash
-# Local
-node src/cli.js https://example.com/wp-json/ -o ./my-api -n "My API"
+# Local (installed as dependency)
+npx wp-to-bruno https://example.com/wp-json/ -o ./my-api -n "My API"
 
 # Global
 wp-to-bruno https://example.com/wp-json/ -o ./my-api -n "My API"
