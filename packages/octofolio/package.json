@@ -1,6 +1,6 @@
 {
   "name": "@n5s/octofolio",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "Clean TypeScript interface for GitHub profile data via GraphQL",
   "keywords": [
     "github",
