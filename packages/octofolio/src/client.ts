@@ -1,7 +1,7 @@
 import { Octokit } from '@octokit/core'
 import { graphql as baseGraphql } from '@octokit/graphql'
 import { paginateGraphQL } from '@octokit/plugin-paginate-graphql'
-import { wrapError } from './errors.js'
+import { NotFoundError, wrapError } from './errors.js'
 import type {
   RawCommitContributionsByRepo,
   RawContributedRepoNode,
@@ -44,7 +44,7 @@ import { PINNED_REPOS_QUERY } from './queries/pinnedRepos.js'
 import { PROFILE_QUERY, VIEWER_QUERY } from './queries/profile.js'
 import { PULL_REQUESTS_QUERY } from './queries/pullRequests.js'
 import { RELEASES_QUERY } from './queries/releases.js'
-import { REPOS_QUERY } from './queries/repos.js'
+import { REPO_QUERY, REPOS_QUERY } from './queries/repos.js'
 import {
   FOLLOWERS_QUERY,
   FOLLOWING_QUERY,
@@ -585,6 +585,28 @@ export function createOctofolio({ token }: { token: string }) {
           viewerPromise = Promise.resolve(data.viewer.login)
         }
         return mapProfile(data.viewer)
+      } catch (e: unknown) {
+        wrapError(e)
+      }
+    },
+
+    async repo(nameWithOwner: string): Promise<Repo> {
+      const parts = nameWithOwner.split('/')
+      if (parts.length !== 2 || !parts[0] || !parts[1]) {
+        throw new TypeError(
+          `Invalid repository identifier: "${nameWithOwner}" — expected "owner/name"`,
+        )
+      }
+      const [owner, name] = parts
+      try {
+        const data = await gql<{ repository: RawRepoNode | null }>(REPO_QUERY, {
+          owner,
+          name,
+        })
+        if (!data.repository) {
+          throw new NotFoundError(`Repository not found: ${nameWithOwner}`)
+        }
+        return mapRepo(data.repository)
       } catch (e: unknown) {
         wrapError(e)
       }

@@ -1,7 +1,7 @@
 import { HttpResponse, http } from 'msw'
 import { setupServer } from 'msw/node'
 import { afterAll, afterEach, beforeAll, describe, expect, it } from 'vitest'
-import { createOctofolio, RateLimitError } from '../src/index.js'
+import { createOctofolio, NotFoundError, RateLimitError } from '../src/index.js'
 import type {
   RawGistNode,
   RawIssueNode,
@@ -390,6 +390,52 @@ describe('repos() and forks()', () => {
     await me.repos()
 
     expect(capturedQuery).toContain('privacy: PUBLIC')
+  })
+})
+
+// ─── repo() tests ─────────────────────────────────────────────────────────────
+
+describe('repo()', () => {
+  it('repo() returns a single Repo by owner/name without a viewer query', async () => {
+    let callCount = 0
+    let capturedBody: string | null = null
+    server.use(
+      http.post('https://api.github.com/graphql', async ({ request }) => {
+        callCount++
+        capturedBody = await request.text()
+        return HttpResponse.json({ data: { repository: repoNodeFixture } })
+      }),
+    )
+    const me = createOctofolio({ token: 'test-token' })
+    const repo = await me.repo('octocat/hello-world')
+
+    expect(repo.nameWithOwner).toBe('octocat/hello-world')
+    expect(repo.primaryLanguage).toBe('JavaScript')
+    expect(repo.topics).toEqual(['javascript'])
+    expect(repo.lastRelease?.tagName).toBe('v1.0.0')
+    // Not viewer-scoped: exactly one request, no separate VIEWER_QUERY
+    expect(callCount).toBe(1)
+    // owner/name passed as GraphQL variables, not interpolated
+    const body = JSON.parse(capturedBody!)
+    expect(body.variables.owner).toBe('octocat')
+    expect(body.variables.name).toBe('hello-world')
+  })
+
+  it('repo() throws NotFoundError when repository is null', async () => {
+    server.use(
+      http.post('https://api.github.com/graphql', () =>
+        HttpResponse.json({ data: { repository: null } }),
+      ),
+    )
+    const me = createOctofolio({ token: 'test-token' })
+    await expect(me.repo('octocat/does-not-exist')).rejects.toThrow(
+      NotFoundError,
+    )
+  })
+
+  it('repo() throws TypeError for a malformed identifier', async () => {
+    const me = createOctofolio({ token: 'test-token' })
+    await expect(me.repo('not-a-valid-id')).rejects.toThrow(TypeError)
   })
 })
 
@@ -1691,12 +1737,13 @@ describe('releases()', () => {
 
 // ─── all 17 methods smoke test ────────────────────────────────────────────────
 
-describe('all 17 methods smoke test', () => {
-  it('createOctofolio return object has all 17 methods as functions', () => {
+describe('all 18 methods smoke test', () => {
+  it('createOctofolio return object has all 18 methods as functions', () => {
     const me = createOctofolio({ token: 'test' })
 
     const expectedMethods = [
       'profile',
+      'repo',
       'repos',
       'forks',
       'pullRequests',

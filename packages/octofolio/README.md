@@ -52,6 +52,17 @@ const repos = await octofolio.repos({ count: 10 })
 //    topics, createdAt, pushedAt, lastRelease }]
 ```
 
+#### `repo(nameWithOwner)`
+
+Returns a single repository by `owner/name`. Unlike the other methods, this is not viewer-scoped: it can fetch **any public repo** on GitHub, plus private repos the token can access. Throws `NotFoundError` if the repo doesn't exist or isn't accessible, and `TypeError` if the identifier isn't `owner/name`.
+
+```ts
+const repo = await octofolio.repo('nlemoine/octofolio')
+// Same shape as repos(): { name, nameWithOwner, url, description, isPrivate,
+//   isFork, stargazerCount, forkCount, primaryLanguage, primaryLanguageColor,
+//   topics, createdAt, pushedAt, lastRelease }
+```
+
 #### `pullRequests(opts?)`
 
 ```ts
