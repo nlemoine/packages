@@ -32,3 +32,22 @@ pnpm nx release --dry-run
 ```
 
 CI runs lint, typecheck, test, knip, publint on every PR and push to `main`.
+
+### Adding a new package
+
+The first publish is manual. npm trusted publishing (OIDC) can only publish to a
+package that already exists, so CI's publish step 404s on a brand-new name. After
+nx tags the first version, publish it once by hand, then add a Trusted Publisher
+for it on npmjs.com (GitHub Actions → `nlemoine/packages` → `release.yml`); later
+releases publish automatically.
+
+```bash
+npm login
+pnpm --filter @n5s/<package> publish --access public --no-git-checks
+```
+
+Keep `feat:`/`fix:` commits scoped to a single package's files. nx maps commits
+to projects by changed path (`useCommitScope: false`), and root files (the
+lockfile, `pnpm-workspace.yaml`) count as touching every project — so a `feat`
+that also edits the lockfile bumps every package. Put root/lockfile/workspace
+changes in their own `chore:` commit.
