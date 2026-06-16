@@ -1,6 +1,7 @@
 import { Octokit } from '@octokit/core'
 import { graphql as baseGraphql } from '@octokit/graphql'
 import { paginateGraphQL } from '@octokit/plugin-paginate-graphql'
+import { throttling } from '@octokit/plugin-throttling'
 import { NotFoundError, wrapError } from './errors.js'
 import type {
   RawCommitContributionsByRepo,
@@ -73,11 +74,17 @@ import type {
 // OctokitWithPaginate is created at module scope (not inside createOctofolio) to avoid
 // re-running Octokit.plugin() on every createOctofolio call — safe since plugin() is idempotent
 // but wasteful; module-level ensures the class is created exactly once.
-const OctokitWithPaginate = Octokit.plugin(paginateGraphQL)
+const OctokitWithPlugins = Octokit.plugin(paginateGraphQL, throttling)
 
 const RETRYABLE_STATUS = new Set([500, 502, 503, 504])
 const MAX_RETRIES = 5
 const BASE_DELAY_MS = 1000
+// Cap on throttling-plugin retries for primary/secondary rate limits. The contributions()
+// year-range path fans out into many sequential GET /search/commits calls, and the Search
+// API is GitHub's most-throttled endpoint (low primary quota + a separate secondary limit
+// on bursts). The plugin paces requests under the primary limit and, on a 403/429, honours
+// the Retry-After header before retrying — turning a hard failure into a short wait.
+const MAX_THROTTLE_RETRIES = 3
 
 async function withRetry<T>(fn: () => Promise<T>): Promise<T> {
   for (let attempt = 0; ; attempt++) {
@@ -239,7 +246,25 @@ export function createOctofolio({ token }: { token: string }) {
   const gql = <T>(...args: Parameters<typeof baseGql>) =>
     withRetry(() => baseGql<T>(...args))
 
-  const octokit = new OctokitWithPaginate({ auth: token })
+  const octokit = new OctokitWithPlugins({
+    auth: token,
+    throttle: {
+      onRateLimit: (retryAfter, options, octokit, retryCount) => {
+        // Primary rate limit (quota exhausted). Retry a few times, honouring Retry-After.
+        octokit.log.warn(
+          `Rate limit hit for ${options.method} ${options.url}; retrying after ${retryAfter}s (attempt ${retryCount + 1}/${MAX_THROTTLE_RETRIES})`,
+        )
+        return retryCount < MAX_THROTTLE_RETRIES
+      },
+      onSecondaryRateLimit: (retryAfter, options, octokit, retryCount) => {
+        // Secondary rate limit (burst/abuse detection — what the Search API trips on).
+        octokit.log.warn(
+          `Secondary rate limit hit for ${options.method} ${options.url}; retrying after ${retryAfter}s (attempt ${retryCount + 1}/${MAX_THROTTLE_RETRIES})`,
+        )
+        return retryCount < MAX_THROTTLE_RETRIES
+      },
+    },
+  })
 
   // Retry transient 5xx errors on all requests (including paginated GraphQL)
   octokit.hook.wrap('request', async (request, options) => {
