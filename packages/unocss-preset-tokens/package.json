@@ -1,0 +1,75 @@
+{
+  "name": "@n5s/unocss-preset-tokens",
+  "version": "0.0.0",
+  "description": "UnoCSS preset that turns DTCG design tokens into theme utilities and CSS custom properties via Terrazzo",
+  "keywords": [
+    "unocss",
+    "unocss-preset",
+    "design-tokens",
+    "dtcg",
+    "terrazzo",
+    "css-variables",
+    "tokens",
+    "theme",
+    "typescript"
+  ],
+  "homepage": "https://github.com/nlemoine/packages/tree/main/packages/unocss-preset-tokens#readme",
+  "bugs": {
+    "url": "https://github.com/nlemoine/packages/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/nlemoine/packages.git",
+    "directory": "packages/unocss-preset-tokens"
+  },
+  "license": "MIT",
+  "author": {
+    "name": "Nicolas Lemoine",
+    "email": "nico@n5s.dev",
+    "url": "https://github.com/nlemoine"
+  },
+  "type": "module",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    },
+    "./package.json": "./package.json"
+  },
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "tsup",
+    "format": "biome format --write",
+    "lint": "biome check",
+    "lint:fix": "biome check --write",
+    "prepublishOnly": "pnpm run build && publint",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@terrazzo/parser": "^2.4.0",
+    "@terrazzo/plugin-css": "^2.4.0",
+    "@terrazzo/token-tools": "^2.4.0"
+  },
+  "devDependencies": {
+    "@biomejs/biome": "^2.5.0",
+    "@types/node": "^22.10.0",
+    "@unocss/core": "^66.7.2",
+    "@unocss/preset-mini": "^66.7.2",
+    "tsup": "^8.5.1",
+    "typescript": "^5.8.0",
+    "vitest": "^4.1.8"
+  },
+  "peerDependencies": {
+    "@unocss/core": ">=0.60.0 <67"
+  },
+  "engines": {
+    "node": ">=22"
+  },
+  "publishConfig": {
+    "access": "public"
+  }
+}

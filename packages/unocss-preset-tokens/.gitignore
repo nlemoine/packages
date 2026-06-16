@@ -1,0 +1,11 @@
+/node_modules
+/dist/
+/coverage/
+/*.tsbuildinfo
+/.env
+/.env.*
+
+# Agent / planning artifacts
+/CLAUDE.md
+/.claude/
+/.planning/
