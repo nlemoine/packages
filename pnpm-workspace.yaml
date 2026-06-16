@@ -4,3 +4,6 @@ allowBuilds:
   esbuild: true
   msw: true
   nx: true
+minimumReleaseAgeExclude:
+  - '@terrazzo/token-types@2.4.0'
+  - knip@6.17.1
