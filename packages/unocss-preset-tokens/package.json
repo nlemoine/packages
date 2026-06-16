@@ -1,6 +1,6 @@
 {
   "name": "@n5s/unocss-preset-tokens",
-  "version": "0.0.0",
+  "version": "0.1.0",
   "description": "UnoCSS preset that turns DTCG design tokens into theme utilities and CSS custom properties via Terrazzo",
   "keywords": [
     "unocss",
