@@ -1,3 +1,9 @@
+## 0.2.1 (2026-06-16)
+
+### 🐛 Bug Fixes
+
+- **octofolio:** handle GitHub rate limits via plugin-throttling ([f1b72bb](https://github.com/nlemoine/packages/commit/f1b72bb))
+
 ## 0.2.0 (2026-05-28)
 
 ### ✨ Features
