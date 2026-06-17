@@ -5,3 +5,7 @@
 
 # Agent / planning artifacts
 /.claude/
+
+# Local reference checkouts (not part of this repo)
+/vite-plugin-inspect/
+.gstack/
