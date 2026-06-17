@@ -1,4 +1,10 @@
 {
   "$schema": "https://unpkg.com/knip@6/schema.json",
-  "ignoreDependencies": ["@nx/js", "@octokit/graphql-schema"]
+  "ignoreDependencies": ["@nx/js", "@octokit/graphql-schema"],
+  "workspaces": {
+    "packages/vite-plugin-mjml": {
+      "entry": ["src/client/main.tsx", "src/client/vite.config.ts"],
+      "ignoreExportsUsedInFile": true
+    }
+  }
 }
