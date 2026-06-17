@@ -1,0 +1,192 @@
+/*
+ * Semantic theme tokens via the native light-dark() function. `color-scheme`
+ * decides which side each token resolves to:
+ *   - default :root         -> "light dark" => follows the OS preference
+ *   - [data-theme="light"]  -> forced light
+ *   - [data-theme="dark"]   -> forced dark
+ * The switcher (theme.ts) just toggles data-theme on <html>.
+ * The MJML brand gradient stays constant across themes.
+ */
+:root {
+  color-scheme: light dark;
+
+  --brand-start: #f46d4c;
+  --brand-end: #e4505d;
+
+  --base: light-dark(#f6f6f7, #141414);
+  --panel: light-dark(#ffffff, #1c1c1c);
+  --subtle: light-dark(#f0f0f2, #2d2d2d);
+  --line: light-dark(#e5e5e8, #2a2a2a);
+  --fg: light-dark(#2b2b30, #d1d5db);
+  --fg-strong: light-dark(#15151a, #ffffff);
+  --muted: light-dark(#6b7280, #9ca3af);
+  --accent: light-dark(#e4505d, #f46d4c);
+  --on-accent: #ffffff;
+  --accent-soft: light-dark(rgba(228, 80, 93, 0.12), rgba(244, 109, 76, 0.16));
+  --accent-soft-strong: light-dark(
+    rgba(228, 80, 93, 0.28),
+    rgba(244, 109, 76, 0.34)
+  );
+
+  /* Code panel stays dark in both themes */
+  --code-bg: #1c1c1c;
+  --scrollbar: rgba(128, 128, 128, 0.45);
+}
+
+:root[data-theme="light"] {
+  color-scheme: light;
+}
+
+:root[data-theme="dark"] {
+  color-scheme: dark;
+}
+
+/* Reset */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html,
+body,
+#app {
+  height: 100%;
+}
+
+body {
+  font-family:
+    -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu,
+    sans-serif;
+  background: var(--base);
+  color: var(--fg);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  overflow: hidden;
+}
+
+/* MJML wordmark logo (lowercase, brand gradient fill) */
+.mjml-wordmark {
+  font-weight: 800;
+  letter-spacing: -0.045em;
+  background: linear-gradient(135deg, var(--brand-start), var(--brand-end));
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  -webkit-text-fill-color: transparent;
+}
+
+/* Scrollbars */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: var(--scrollbar);
+  border-radius: 4px;
+}
+
+/* Form controls */
+button {
+  cursor: pointer;
+  border: none;
+  background: none;
+  color: inherit;
+  font: inherit;
+}
+button:focus {
+  outline: none;
+}
+
+select {
+  cursor: pointer;
+  color: inherit;
+  font: inherit;
+  background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%239ca3af' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e");
+  background-position: right 0.5rem center;
+  background-repeat: no-repeat;
+  background-size: 1.5em 1.5em;
+  padding-right: 2.5rem;
+  -webkit-appearance: none;
+}
+select:focus {
+  outline: none;
+}
+
+code,
+pre {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+}
+
+/* Syntax highlighting (Prism.js) — tuned for the always-dark code panel */
+code[class*="language-"],
+pre[class*="language-"] {
+  color: #d1d5db;
+}
+.token.comment,
+.token.prolog,
+.token.doctype,
+.token.cdata {
+  color: #6b7280;
+  font-style: italic;
+}
+.token.punctuation {
+  color: #9ca3af;
+}
+.token.tag,
+.token.namespace {
+  color: #f472b6;
+}
+.token.attr-name {
+  color: #fbbf24;
+}
+.token.attr-value,
+.token.string {
+  color: #86efac;
+}
+.token.entity,
+.token.url,
+.token.symbol,
+.token.number,
+.token.boolean,
+.token.constant,
+.token.regex {
+  color: #fdba74;
+}
+.token.keyword,
+.token.property {
+  color: #c084fc;
+}
+.token.function {
+  color: #60a5fa;
+}
+.token.operator {
+  color: #22d3ee;
+}
+.token.important,
+.token.bold {
+  font-weight: bold;
+}
+.token.italic {
+  font-style: italic;
+}
+.token.deleted {
+  color: #f87171;
+}
+.token.inserted {
+  color: #4ade80;
+}
+.token.variable {
+  color: #22d3ee;
+}
+.token.class-name {
+  color: #fbbf24;
+}
+.token.php-tag {
+  color: #c084fc;
+}
