@@ -1,0 +1,10 @@
+<mjml>
+  <mj-body>
+    <mj-include path="./_header.mjml" />
+    <mj-section>
+      <mj-column>
+        <mj-text>Welcome</mj-text>
+      </mj-column>
+    </mj-section>
+  </mj-body>
+</mjml>
