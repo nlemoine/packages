@@ -7,7 +7,7 @@ const mode = signal<ThemeMode>(getTheme())
 function SystemIcon() {
   return (
     <svg
-      class="w-5 h-5"
+      class="w-[18px] h-[18px]"
       viewBox="0 0 24 24"
       fill="none"
       stroke="currentColor"
@@ -22,7 +22,7 @@ function SystemIcon() {
 function SunIcon() {
   return (
     <svg
-      class="w-5 h-5"
+      class="w-[18px] h-[18px]"
       viewBox="0 0 24 24"
       fill="none"
       stroke="currentColor"
@@ -40,7 +40,7 @@ function SunIcon() {
 function MoonIcon() {
   return (
     <svg
-      class="w-5 h-5"
+      class="w-[18px] h-[18px]"
       viewBox="0 0 24 24"
       fill="none"
       stroke="currentColor"
@@ -68,7 +68,7 @@ export function ThemeToggle() {
       onClick={cycle}
       title={`Theme: ${mode.value} (click to change)`}
       aria-label={`Theme: ${mode.value}`}
-      class="shrink-0 flex items-center justify-center p-1.5 rounded-md text-muted hover:text-fg-strong hover:bg-subtle transition-colors duration-150"
+      class="shrink-0 flex items-center justify-center w-[30px] h-[30px] rounded-lg border border-line bg-transparent text-muted hover:text-fg-strong hover:bg-subtle transition-colors duration-150"
     >
       {mode.value === 'system' ? (
         <SystemIcon />

@@ -7,27 +7,38 @@ import { Shell } from './components/Shell'
 import { Sidebar } from './components/Sidebar'
 import { setupHmr } from './hmr'
 
-export type View = 'desktop' | 'mobile' | 'source' | 'check'
+export type ViewMode = 'preview' | 'source' | 'check'
+
+export interface Device {
+  name: string
+  px: number
+  h: number
+}
+
+export const DEVICES: Device[] = [
+  { name: 'iPhone SE', px: 375, h: 667 },
+  { name: 'iPhone 14', px: 390, h: 844 },
+  { name: 'iPhone 14 Pro Max', px: 430, h: 932 },
+  { name: 'Pixel 7', px: 412, h: 915 },
+  { name: 'Galaxy S22', px: 360, h: 800 },
+]
 
 const base = window.__MJML_PREVIEW_DATA__?.base ?? '/'
 const apiBase = `${base}__mjml`
-
-// Desktop + Mobile are cumulative panes; Source and Check are exclusive tabs.
-const EXCLUSIVE = new Set<View>(['source', 'check'])
 
 const files = signal<string[]>([])
 const currentFile = signal<string | null>(null)
 const html = signal('')
 const source = signal('')
-const activeViews = signal<Set<View>>(new Set(['desktop', 'mobile']))
-const mobileWidth = signal(375)
+// View (what you look at) is independent from Viewport (how the preview is sized).
+const view = signal<ViewMode>('preview')
+const showDesktop = signal(true)
+const showMobile = signal(true)
+const deviceIdx = signal(0)
 const editorUrl = signal('vscode://file/%f')
 const checkReport = signal<CheckReport | null>(null)
 const checkLoading = signal(false)
 const initialized = signal(false)
-
-// Remember the preview panes while an exclusive tab is shown.
-let lastPreviewViews: Set<View> = new Set(['desktop', 'mobile'])
 
 async function loadCheck(file: string | null): Promise<void> {
   if (!file) return
@@ -43,33 +54,24 @@ async function loadCheck(file: string | null): Promise<void> {
   }
 }
 
-function toggleView(view: View): void {
-  const current = activeViews.value
-  const inExclusive = current.has('source') || current.has('check')
+function setView(next: ViewMode): void {
+  view.value = next
+  if (next === 'check') loadCheck(currentFile.value)
+}
 
-  if (EXCLUSIVE.has(view)) {
-    if (current.has(view)) {
-      activeViews.value = new Set(lastPreviewViews) // toggling the tab off restores the panes
-    } else {
-      if (!inExclusive) lastPreviewViews = new Set(current)
-      activeViews.value = new Set([view])
-      if (view === 'check') loadCheck(currentFile.value)
-    }
-    return
-  }
+// Viewport toggles are independent, but at least one must stay on.
+function toggleDesktop(): void {
+  if (showDesktop.value && !showMobile.value) return
+  showDesktop.value = !showDesktop.value
+}
 
-  // Desktop / Mobile are cumulative; selecting one leaves an exclusive tab.
-  if (inExclusive) {
-    activeViews.value = new Set([view])
-    return
-  }
-  const next = new Set(current)
-  if (next.has(view)) {
-    if (next.size > 1) next.delete(view) // keep at least one pane visible
-  } else {
-    next.add(view)
-  }
-  activeViews.value = next
+function toggleMobile(): void {
+  if (showMobile.value && !showDesktop.value) return
+  showMobile.value = !showMobile.value
+}
+
+function setDevice(index: number): void {
+  deviceIdx.value = index
 }
 
 async function loadFile(file: string): Promise<void> {
@@ -82,7 +84,7 @@ async function loadFile(file: string): Promise<void> {
     html.value = await htmlRes.text()
     source.value = await sourceRes.text()
     history.pushState(null, '', `${apiBase}/${encodeURIComponent(file)}`)
-    if (activeViews.value.has('check')) loadCheck(file)
+    if (view.value === 'check') loadCheck(file)
   } catch (e) {
     console.error('Failed to load file:', e)
   }
@@ -118,6 +120,7 @@ export function App(props: Partial<PreviewData>) {
   }, [])
 
   const isHome = !currentFile.value
+  const device = DEVICES[deviceIdx.value]
 
   return (
     <Shell>
@@ -126,26 +129,32 @@ export function App(props: Partial<PreviewData>) {
         currentFile={currentFile.value}
         onSelectFile={loadFile}
       />
-      <main class="flex-1 flex flex-col bg-base overflow-hidden">
+      <main class="flex-1 flex flex-col bg-base overflow-hidden min-w-0">
         {!isHome && (
           <Nav
             title={currentFile.value ?? ''}
-            active={activeViews.value}
-            onToggle={toggleView}
+            view={view.value}
+            onSetView={setView}
+            showDesktop={showDesktop.value}
+            showMobile={showMobile.value}
+            onToggleDesktop={toggleDesktop}
+            onToggleMobile={toggleMobile}
+            devices={DEVICES}
+            deviceIdx={deviceIdx.value}
+            onSetDevice={setDevice}
             onEdit={openInEditor}
-            mobileWidth={mobileWidth.value}
-            onMobileWidthChange={(w) => {
-              mobileWidth.value = w
-            }}
           />
         )}
         <Preview
           isHome={isHome}
           files={files.value}
-          active={activeViews.value}
+          view={view.value}
+          showDesktop={showDesktop.value}
+          showMobile={showMobile.value}
+          deviceWidth={device.px}
+          deviceHeight={device.h}
           html={html.value}
           source={source.value}
-          mobileWidth={mobileWidth.value}
           report={checkReport.value}
           reportLoading={checkLoading.value}
         />
