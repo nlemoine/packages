@@ -8,3 +8,6 @@
 # Agent / planning artifacts
 /CLAUDE.md
 /.planning/
+
+# Design handoffs (reference material, not shipped)
+/design_handoff_mjml_preview_toolbar/

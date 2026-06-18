@@ -139,7 +139,7 @@ function TreeNode({
                 key={file.path}
                 class={`group flex items-center gap-2 py-1.5 px-2 w-full text-left text-sm rounded-md transition-all duration-150 relative ${
                   isActive
-                    ? 'bg-accent-soft text-accent'
+                    ? 'bg-accent-row text-accent'
                     : 'hover:bg-subtle hover:text-fg-strong'
                 }`}
                 onClick={() => onSelectFile(file.path)}

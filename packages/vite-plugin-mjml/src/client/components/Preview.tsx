@@ -5,13 +5,18 @@ import 'prismjs/components/prism-php'
 import 'prismjs/components/prism-php-extras'
 import { useEffect, useMemo, useRef } from 'preact/hooks'
 import type { CheckReport, FeatureRow } from '../../types'
-import type { View } from '../App'
+import type { ViewMode } from '../App'
 import { type CheckItem, runChecks } from '../checks'
 import { Logo } from './Logo'
 
 const GREEN = '#22c55e'
 const AMBER = '#f59e0b'
 const RED = '#ef4444'
+
+const DESKTOP_WIDTH = 800
+// Nominal desktop-client viewport height; the card is also capped at the
+// available container height, so it never overflows the window.
+const DESKTOP_HEIGHT = 800
 
 function HomeView({ files }: { files: string[] }) {
   if (files.length === 0) {
@@ -54,55 +59,95 @@ function HomeView({ files }: { files: string[] }) {
   )
 }
 
-/** A single viewport pane (fluid for desktop, fixed-width for mobile). */
-function Pane({
+/**
+ * A labeled device frame: a white card holding an auto-height iframe of the
+ * email. The card hugs the email's height, but is capped at the device's height
+ * (and never taller than the container) — a tall email then scrolls inside the
+ * frame, mirroring how it looks on that device, rather than filling the window.
+ */
+function Frame({
   label,
   html,
   width,
+  height,
   isMobile,
 }: {
   label: string
   html: string
-  width?: number
+  width: number
+  height: number
   isMobile?: boolean
 }) {
   const iframeRef = useRef<HTMLIFrameElement>(null)
 
   useEffect(() => {
     const iframe = iframeRef.current
-    if (!iframe || !isMobile) return
+    if (!iframe) return
+    let observer: ResizeObserver | undefined
 
-    const handleLoad = () => {
+    const sizeToContent = () => {
       try {
-        const doc = iframe.contentDocument
-        if (!doc) return
-        const style = doc.createElement('style')
-        style.innerHTML =
-          'table { overflow-wrap: anywhere; width: 100% !important; }'
-        doc.head.appendChild(style)
+        const h = iframe.contentDocument?.documentElement?.scrollHeight
+        if (h) iframe.style.height = `${h}px`
       } catch {
-        // Cross-origin iframe, ignore.
+        // Cross-origin (shouldn't happen for srcdoc); ignore.
       }
     }
 
-    iframe.addEventListener('load', handleLoad)
-    return () => iframe.removeEventListener('load', handleLoad)
+    const onLoad = () => {
+      if (isMobile) {
+        try {
+          const doc = iframe.contentDocument
+          if (doc) {
+            const style = doc.createElement('style')
+            style.textContent = 'table { overflow-wrap: anywhere; }'
+            doc.head.appendChild(style)
+          }
+        } catch {
+          // ignore
+        }
+      }
+      sizeToContent()
+      try {
+        const el = iframe.contentDocument?.documentElement
+        if (el) {
+          observer = new ResizeObserver(sizeToContent)
+          observer.observe(el)
+        }
+      } catch {
+        // ignore
+      }
+    }
+
+    iframe.addEventListener('load', onLoad)
+    sizeToContent()
+    return () => {
+      iframe.removeEventListener('load', onLoad)
+      observer?.disconnect()
+    }
   }, [html, isMobile])
 
+  // Card sizes to the email; capped at the available height, then scrolls.
   return (
     <div
-      class={`flex flex-col h-full ${width ? 'shrink-0' : 'flex-1 min-w-0'}`}
-      style={width ? { width: `${width}px` } : undefined}
+      class="flex flex-col gap-2.5 shrink-0 max-h-full min-h-0"
+      style={{ width: `${width}px` }}
     >
-      <div class="shrink-0 mb-2 px-0.5 text-xs font-medium text-muted">
+      <span class="shrink-0 pl-0.5 text-xs font-semibold text-muted">
         {label}
-      </div>
-      <div class="flex-1 min-h-0 bg-white rounded-lg shadow-2xl overflow-hidden">
+      </span>
+      <div
+        class="min-h-0 overflow-auto rounded-[10px] bg-white shadow-[0_4px_18px_rgba(0,0,0,0.1)]"
+        style={{ maxHeight: `${height}px` }}
+      >
+        {/* Width comes from the column (the device width); w-full lets the
+            iframe shrink with the card when a vertical scrollbar appears, so a
+            fixed px width never forces a spurious horizontal scrollbar. */}
         <iframe
           ref={iframeRef}
           title={label}
           srcdoc={html}
-          class="w-full h-full bg-white"
+          class="block w-full bg-white"
           style={{ border: 'none' }}
         />
       </div>
@@ -144,7 +189,7 @@ function Donut({ report }: { report: CheckReport }) {
           cy="50"
           r="42"
           fill="none"
-          stroke="var(--line)"
+          stroke="var(--track)"
           stroke-width="9"
         />
         <circle
@@ -202,7 +247,7 @@ function FeatureBar({ row }: { row: FeatureRow }) {
         {row.title}
         {row.count > 0 && <span class="text-muted"> ×{row.count}</span>}
       </div>
-      <div class="flex-1 flex h-2.5 rounded-full overflow-hidden bg-line">
+      <div class="flex-1 flex h-2.5 rounded-full overflow-hidden bg-track">
         {row.supported > 0 && (
           <div style={{ width: pct(row.supported), background: GREEN }} />
         )}
@@ -224,7 +269,7 @@ function ExtraRow({ item }: { item: CheckItem }) {
   const color =
     item.status === 'pass' ? GREEN : item.status === 'warn' ? AMBER : RED
   return (
-    <li class="flex items-start gap-3 p-3 rounded-lg bg-panel border border-line">
+    <li class="flex items-start gap-3 p-3 rounded-lg bg-card border border-line">
       <span
         class="mt-1.5 w-2 h-2 shrink-0 rounded-full"
         style={{ background: color }}
@@ -307,42 +352,58 @@ function CheckView({
 export function Preview({
   isHome,
   files,
-  active,
+  view,
+  showDesktop,
+  showMobile,
+  deviceWidth,
+  deviceHeight,
   html,
   source,
-  mobileWidth,
   report,
   reportLoading,
 }: {
   isHome: boolean
   files: string[]
-  active: Set<View>
+  view: ViewMode
+  showDesktop: boolean
+  showMobile: boolean
+  deviceWidth: number
+  deviceHeight: number
   html: string
   source: string
-  mobileWidth: number
   report: CheckReport | null
   reportLoading: boolean
 }) {
   if (isHome) {
     return <HomeView files={files} />
   }
-  if (active.has('source')) {
+  if (view === 'source') {
     return <SourceView source={source} />
   }
-  if (active.has('check')) {
+  if (view === 'check') {
     return <CheckView report={report} loading={reportLoading} html={html} />
   }
   return (
-    <div class="flex-1 flex justify-center gap-6 overflow-auto bg-base p-6">
-      {active.has('desktop') && <Pane label="Desktop" html={html} />}
-      {active.has('mobile') && (
-        <Pane
-          label={`Mobile · ${mobileWidth}px`}
-          html={html}
-          width={mobileWidth}
-          isMobile
-        />
-      )}
+    <div class="flex-1 overflow-auto bg-base">
+      <div class="flex h-full min-h-0 justify-center items-start gap-10 p-[34px]">
+        {showDesktop && (
+          <Frame
+            label="Desktop"
+            html={html}
+            width={DESKTOP_WIDTH}
+            height={DESKTOP_HEIGHT}
+          />
+        )}
+        {showMobile && (
+          <Frame
+            label={`Mobile · ${deviceWidth}px`}
+            html={html}
+            width={deviceWidth}
+            height={deviceHeight}
+            isMobile
+          />
+        )}
+      </div>
     </div>
   )
 }

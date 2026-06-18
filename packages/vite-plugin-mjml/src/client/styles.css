@@ -13,13 +13,28 @@
   --brand-start: #f46d4c;
   --brand-end: #e4505d;
 
-  --base: light-dark(#f6f6f7, #141414);
-  --panel: light-dark(#ffffff, #1c1c1c);
-  --subtle: light-dark(#f0f0f2, #2d2d2d);
-  --line: light-dark(#e5e5e8, #2a2a2a);
-  --fg: light-dark(#2b2b30, #d1d5db);
-  --fg-strong: light-dark(#15151a, #ffffff);
-  --muted: light-dark(#6b7280, #9ca3af);
+  /*
+   * Surfaces — the design system's neutral scale. Three distinct levels that
+   * matter mostly in dark mode:
+   *   --panel (surface-default) is the header / strip / sidebar      (darkest)
+   *   --base  (surface-secondary) is the preview area + segmented track
+   *   --card  (surface-card) is the viewport group, pills, selected segment
+   * In light mode default/card are both #ffffff; in dark they diverge so the
+   * raised chrome (cards) sits a step lighter than the header.
+   */
+  --panel: light-dark(#ffffff, #171717);
+  --base: light-dark(#f5f5f5, #262626);
+  --card: light-dark(#ffffff, #262626);
+  --subtle: light-dark(#f5f5f5, #2d2d2d);
+  --track: light-dark(#e5e5e5, #404040);
+  --line: light-dark(#e5e5e5, #404040);
+
+  /* Text */
+  --fg: light-dark(#171717, #f5f5f5);
+  --fg-strong: light-dark(#171717, #f5f5f5);
+  --muted: light-dark(#737373, #d4d4d4);
+  --faint: #a3a3a3;
+
   --accent: light-dark(#e4505d, #f46d4c);
   --on-accent: #ffffff;
   --accent-soft: light-dark(rgba(228, 80, 93, 0.12), rgba(244, 109, 76, 0.16));
@@ -27,10 +42,11 @@
     rgba(228, 80, 93, 0.28),
     rgba(244, 109, 76, 0.34)
   );
+  /* Selected list rows use a lighter 9% tint than the 12% "on" states. */
+  --accent-row: light-dark(rgba(228, 80, 93, 0.09), rgba(244, 109, 76, 0.12));
 
   /* Code panel stays dark in both themes */
-  --code-bg: #1c1c1c;
-  --scrollbar: rgba(128, 128, 128, 0.45);
+  --code-bg: #1e1f24;
 }
 
 :root[data-theme="light"] {
@@ -48,6 +64,15 @@
   box-sizing: border-box;
   margin: 0;
   padding: 0;
+  /*
+   * presetWind3 ships no preflight, so border-style defaults to `none` and the
+   * `border`/`border-r`/… width utilities render nothing. Mirror Tailwind's
+   * preflight: borders are solid + 0-width by default, and the width utilities
+   * opt elements in. Default the color to our token so `border-*` alone works.
+   */
+  border-width: 0;
+  border-style: solid;
+  border-color: var(--line);
 }
 
 html,
@@ -78,23 +103,21 @@ body {
   -webkit-text-fill-color: transparent;
 }
 
-/* Scrollbars */
-::-webkit-scrollbar {
-  width: 8px;
-  height: 8px;
-}
-::-webkit-scrollbar-track {
-  background: transparent;
-}
-::-webkit-scrollbar-thumb {
-  background: var(--scrollbar);
-  border-radius: 4px;
-}
+/*
+ * Scrollbars: defer to the OS. Styling ::-webkit-scrollbar with an explicit
+ * width forces a classic, space-reserving bar even on macOS — which both makes
+ * the bar always-visible and steals ~8px from the right of each device frame,
+ * shifting the email off-center. By NOT overriding it, macOS uses its native
+ * overlay scrollbars: they appear only while scrolling/hovering and reserve no
+ * layout width, so frames keep the email centered at the exact device width.
+ */
 
 /* Form controls */
 button {
   cursor: pointer;
-  border: none;
+  /* No `border: none` here — that sets border-style:none and would defeat the
+     `border-*` width utilities on buttons (pills, theme toggle). The global
+     reset already gives every element a 0-width solid border. */
   background: none;
   color: inherit;
   font: inherit;
@@ -107,7 +130,7 @@ select {
   cursor: pointer;
   color: inherit;
   font: inherit;
-  background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%239ca3af' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e");
+  background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%23a3a3a3' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e");
   background-position: right 0.5rem center;
   background-repeat: no-repeat;
   background-size: 1.5em 1.5em;
