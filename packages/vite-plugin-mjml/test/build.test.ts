@@ -29,6 +29,12 @@ describe('build', () => {
       join(root, 'emails', 'nested', 'confirm.mjml'),
       VALID.replace('__T__', 'Bye'),
     )
+    // Default index.html entry: works on every supported Vite major, unlike
+    // the bundler-specific rollupOptions/rolldownOptions input.
+    writeFileSync(
+      join(root, 'index.html'),
+      '<html><body><script type="module" src="/entry.js"></script></body></html>',
+    )
     writeFileSync(join(root, 'entry.js'), 'export default 1')
 
     await build({
@@ -37,7 +43,6 @@ describe('build', () => {
       build: {
         outDir: join(root, 'dist'),
         emptyOutDir: true,
-        rollupOptions: { input: join(root, 'entry.js') },
       },
       plugins: [mjml({ input: 'emails/**/*.mjml' })],
     })

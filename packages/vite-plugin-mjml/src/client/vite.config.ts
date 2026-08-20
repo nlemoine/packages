@@ -34,9 +34,11 @@ export default defineConfig({
       },
     }),
   ],
-  esbuild: {
-    jsx: 'automatic',
-    jsxImportSource: 'preact',
+  oxc: {
+    jsx: {
+      runtime: 'automatic',
+      importSource: 'preact',
+    },
   },
   build: {
     outDir: '../../dist/client',
@@ -47,7 +49,7 @@ export default defineConfig({
       entry: 'main.tsx',
       formats: ['es'],
     },
-    rollupOptions: {
+    rolldownOptions: {
       output: {
         entryFileNames: 'main.js',
         assetFileNames: 'main.[ext]',

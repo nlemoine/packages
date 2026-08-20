@@ -8,7 +8,7 @@ Vite plugin that compiles [MJML](https://mjml.io) email templates to HTML, with 
 - Dev preview at `/__mjml/`: file-tree sidebar; **side-by-side Desktop + Mobile** viewports; a **Source** view; a **Check** tab (email-client compatibility from [caniemail](https://www.caniemail.com) data, plus Gmail-clipping size and accessibility checks); light/dark/system theme; open-in-editor; and live reload on change.
 - **Partials**: files whose basename starts with `_` are watched but never compiled standalone — include them with `mj-include`.
 - Works with plain `.mjml` and templated files such as `.mjml.php`.
-- The preview client is pre-bundled and served by the plugin — it does **not** touch your project's esbuild/JSX config.
+- The preview client is pre-bundled and served by the plugin — it does **not** touch your project's JSX config.
 
 ## Install
 
@@ -58,7 +58,7 @@ The MJML `filePath` option (for `mj-include` resolution) is derived from the inp
 
 ## How the preview works
 
-The preview UI is a small pre-built Preact app shipped inside the package. The plugin serves it under `/__mjml/` alongside a tiny JSON API, and live-reloads it via Vite's HMR channel when a template changes. Nothing is injected into your app's bundle or its esbuild/JSX configuration.
+The preview UI is a small pre-built Preact app shipped inside the package. The plugin serves it under `/__mjml/` alongside a tiny JSON API, and live-reloads it via Vite's HMR channel when a template changes. Nothing is injected into your app's bundle or its JSX configuration.
 
 ## License
 
