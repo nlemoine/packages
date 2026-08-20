@@ -1,6 +1,6 @@
 {
   "name": "@n5s/vite-plugin-mjml",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "Vite plugin that compiles MJML email templates to HTML with a live dev preview",
   "keywords": [
     "vite",
