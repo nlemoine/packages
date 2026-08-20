@@ -19,7 +19,9 @@
       "updateDependents": "auto",
       "preserveMatchingDependencyRanges": false
     },
-    "releaseTagPattern": "{projectName}@{version}",
+    "releaseTag": {
+      "pattern": "{projectName}@{version}"
+    },
     "changelog": {
       "automaticFromRef": true,
       "projectChangelogs": {
