@@ -217,3 +217,57 @@ describe('variable name collisions', () => {
     }
   })
 })
+
+describe('channel companions on compact preflight output', () => {
+  // A `prepare` that wraps a permutation without line breaks (`:root{…}`) puts
+  // the first declaration on the selector's line and the last on the closing
+  // brace's. Each still needs its `--x--c`, or the channels-based theme value
+  // `rgb(var(--x--c))` resolves to nothing.
+  it('adds the companion to every declaration, whatever its line', async () => {
+    const modes = (light: number[], dark: number[]) => ({
+      $value: dtcgColor(light[0], light[1], light[2]),
+      $extensions: {
+        mode: {
+          light: dtcgColor(light[0], light[1], light[2]),
+          dark: dtcgColor(dark[0], dark[1], dark[2]),
+        },
+      },
+    })
+    const preset = await buildPreset({
+      sources: [
+        makeSource({
+          color: {
+            $type: 'color',
+            accent: { $value: '{color.brand}' },
+            bg: modes([1, 1, 1], [0, 0, 0]),
+            brand: { $value: dtcgColor(0.2, 0.4, 0.8) },
+            fg: modes([0, 0, 0], [1, 1, 1]),
+          },
+        }),
+      ],
+      theme: { color: ['color.*'] },
+      preflights: {
+        permutations: [
+          { input: { tzMode: '.' }, prepare: (c) => `:root{${c}}` },
+          {
+            input: { tzMode: 'dark' },
+            prepare: (c) => `[data-theme=dark]{${c}}`,
+          },
+        ],
+      },
+    })
+    const css = (
+      preset.preflights as Array<{ getCSS: (c: unknown) => string }>
+    )[0].getCSS({})
+
+    const count = (needle: string) => css.split(needle).length - 1
+    // Terrazzo resolves the alias inside a permutation, so accent is a plain
+    // color here, and the first declaration of each block.
+    expect(count('--color-accent--c: 20% 40% 80%;')).toBe(2)
+    expect(count('--color-bg--c:')).toBe(2)
+    expect(count('--color-brand--c:')).toBe(2)
+    expect(count('--color-fg--c:')).toBe(2)
+    expect(css).toContain('--color-bg--c: 100% 100% 100%;')
+    expect(css).toContain('--color-bg--c: 0% 0% 0%;')
+  })
+})
