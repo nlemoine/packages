@@ -184,11 +184,12 @@ function toThemeValue(
  */
 function addChannelVars(css: string): string {
   const fns = NAMED_COLOR_FUNCTION_NAMES.join('|')
-  const colorDecl = new RegExp(
-    `^(\\s*)(--[\\w-]+):\\s*(?:${fns})\\(\\s*([^;)]+?)\\s*\\)\\s*;\\s*$`,
-    'i',
-  )
-  const aliasDecl = /^(\s*)(--[\w-]+):\s*var\(\s*(--[\w-]+)\s*\)\s*;\s*$/
+  // Declarations are found wherever they sit on a line: a `prepare` that wraps
+  // a permutation without line breaks (`:root{…}`) shares the first and last
+  // declarations' lines with the braces. Values hold no `;`, `{` or `}`.
+  const declaration = /(--[\w-]+)\s*:\s*([^;{}]*?)\s*;/g
+  const colorValue = new RegExp(`^(?:${fns})\\(\\s*([^;)]+?)\\s*\\)$`, 'i')
+  const aliasValue = /^var\(\s*(--[\w-]+)\s*\)$/
   const lines = css.split('\n')
 
   // Pass 1: which custom properties are colors that get a channel companion? A
@@ -197,14 +198,15 @@ function addChannelVars(css: string): string {
   const colorVars = new Set<string>()
   const aliasEdges: Array<[from: string, to: string]> = []
   for (const line of lines) {
-    const color = line.match(colorDecl)
-    if (color) {
-      colorVars.add(color[2])
-      continue
-    }
-    const alias = line.match(aliasDecl)
-    if (alias) {
-      aliasEdges.push([alias[2], alias[3]])
+    for (const [, name, value] of line.matchAll(declaration)) {
+      if (colorValue.test(value)) {
+        colorVars.add(name)
+        continue
+      }
+      const alias = value.match(aliasValue)
+      if (alias) {
+        aliasEdges.push([name, alias[1]])
+      }
     }
   }
   for (let changed = true; changed; ) {
@@ -217,26 +219,37 @@ function addChannelVars(css: string): string {
     }
   }
 
-  // Pass 2: emit each line, appending a companion for color declarations and
-  // color aliases.
+  const companionOf = (name: string, value: string): string | null => {
+    const color = value.match(colorValue)
+    if (color) {
+      return `${name}${CHANNEL_SUFFIX}: ${color[1].split('/')[0].trim()};`
+    }
+    const alias = value.match(aliasValue)
+    if (alias && colorVars.has(name)) {
+      return `${name}${CHANNEL_SUFFIX}: var(${alias[1]}${CHANNEL_SUFFIX});`
+    }
+    return null
+  }
+
+  // Pass 2: a declaration alone on its line gets its companion on the next
+  // line, at the same indent; one sharing its line gets it right after its `;`.
   const out: string[] = []
   for (const line of lines) {
-    out.push(line)
-    const color = line.match(colorDecl)
-    if (color) {
-      const [, indent, name, body] = color
-      out.push(
-        `${indent}${name}${CHANNEL_SUFFIX}: ${body.split('/')[0].trim()};`,
-      )
+    const own = line.match(/^(\s*)(--[\w-]+)\s*:\s*([^;{}]*?)\s*;\s*$/)
+    if (own) {
+      out.push(line)
+      const companion = companionOf(own[2], own[3])
+      if (companion) {
+        out.push(`${own[1]}${companion}`)
+      }
       continue
     }
-    const alias = line.match(aliasDecl)
-    if (alias && colorVars.has(alias[2])) {
-      const [, indent, name, target] = alias
-      out.push(
-        `${indent}${name}${CHANNEL_SUFFIX}: var(${target}${CHANNEL_SUFFIX});`,
-      )
-    }
+    out.push(
+      line.replace(declaration, (decl, name: string, value: string) => {
+        const companion = companionOf(name, value)
+        return companion ? `${decl} ${companion}` : decl
+      }),
+    )
   }
   return out.join('\n')
 }
